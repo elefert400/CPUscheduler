@@ -4,12 +4,21 @@
 #ifndef LIBPRIQUEUE_H_
 #define LIBPRIQUEUE_H_
 
+struct node;
 /**
   Priqueue Data Structure
 */
+typedef struct node
+{
+  void* process;
+  struct node *next;
+} node;
+
 typedef struct _priqueue_t
 {
-
+  int size;
+  node *head;
+  int(*comp)(const void*, const void*);
 } priqueue_t;
 
 
