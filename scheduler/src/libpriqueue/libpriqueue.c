@@ -153,8 +153,7 @@ void *priqueue_at(priqueue_t *q, int index)
 	}
 	else
 	{
-		// this will iterate the whole que, another condition is needed
-		while(tracker < index && index != tracker)
+		while(tracker < index)
 		{
 			temp = temp->next;
 			tracker++;
@@ -220,17 +219,21 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 void *priqueue_remove_at(priqueue_t *q, int index)
 {
 	//I do not really think it is a good way to do it, remember how to delete elem in linkedlist
-	current = q->head;
-	previous = current;
+	node* delEle;
+	delEle = q->head;
+	//previous = current;
 	int tracker = 0;
 	while(tracker < index)
 	{
-		previous = current;
-		current = current -> next;
+		current = delEle;
+		delEle = delEle->next;
+		tracker++;
 	}
-	previous = current -> next;
-	free(current);
+	current = delEle -> next;
+	free(delEle);
 	q->size--;
+	// this shold return void* type.
+	return 0;
 }
 
 
