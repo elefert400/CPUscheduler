@@ -6,8 +6,6 @@
 
 #include "libpriqueue.h"
 
-node* current;
-node* previous;
 
 /**
   Initializes the priqueue_t data structure.
@@ -46,6 +44,7 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 		q->size++;
 		return 0;
 	}
+	// what special about size 1 que??
 	else if (q->size == 1)
 	{
 		if(q->comp(q->head, node) < 0)
@@ -82,6 +81,8 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 				current = current->next;
 			}
 		}
+		//need to be checked
+		return tracker;
 	}
 }
 
@@ -127,6 +128,8 @@ void *priqueue_poll(priqueue_t *q)
 		q->head = q->head->next;
 		q->size--;
 		return returnNode;
+		// this node might need to be freed, to solve it I would create an accessor
+		// function to get the value and free it.
 	}
 }
 
@@ -150,12 +153,16 @@ void *priqueue_at(priqueue_t *q, int index)
 	}
 	else
 	{
-		while(tracker < index)
+		// this will iterate the whole que, another condition is needed
+		while(tracker < index && index != tracker)
 		{
 			temp = temp->next;
 			tracker++;
 		}
-		return temp;
+		if (index == tracker)
+			return temp;
+		else
+			return NULL;
 	}
 }
 
@@ -172,28 +179,32 @@ void *priqueue_at(priqueue_t *q, int index)
  */
 int priqueue_remove(priqueue_t *q, void *ptr)
 {
-	node* current = q->head;
-	node* previous = current;
-	int tracker = 0;
-	int initialSize = q->size;
-	while(tracker < initialSize)
-	{
-		if(current->next = NULL)
-		{
-			return 0;
-		}
-		if(current->process == ptr)
-		{
-			previous = current -> next;
-			q->size--;
-			free(current);
-			node* current = previous -> next;
-		}
-		tracker++;
+	if (q->size == 0)
+		return 0;
+	else{
+		current = q->head;
 		previous = current;
-		current = current -> next;
-	}//end while
-	return 0;
+		int tracker = 0;
+		int initialSize = q->size;
+		while(tracker < initialSize)
+		{
+			if(current->next == NULL)
+			{
+				return 0;
+			}
+			if(current->process == ptr)
+			{
+				previous = current -> next;
+				q->size--;
+				free(current);
+				current = previous -> next;
+			}
+			tracker++;
+			previous = current;
+			current = current -> next;
+		}//end while
+		return 0;
+	}
 }//end funtion
 
 
@@ -208,8 +219,9 @@ int priqueue_remove(priqueue_t *q, void *ptr)
  */
 void *priqueue_remove_at(priqueue_t *q, int index)
 {
-	node* current = q->head;
-	node* previous = current;
+	//I do not really think it is a good way to do it, remember how to delete elem in linkedlist
+	current = q->head;
+	previous = current;
 	int tracker = 0;
 	while(tracker < index)
 	{
@@ -241,11 +253,14 @@ int priqueue_size(priqueue_t *q)
  */
 void priqueue_destroy(priqueue_t *q)
 {
+	current = q->head;
+	//previous = q->head;
 	while(q->size > 0)
 	{
-		node* current = q->head;
-		q->head = current -> next;
+		temp = current->next;
 		free(current);
+		current = temp;
 		q->size--;
 	}
+	q->head = NULL;
 }
