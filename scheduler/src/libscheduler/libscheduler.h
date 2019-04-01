@@ -1,8 +1,42 @@
 /** @file libscheduler.h
  */
 
+#include <stdbool.h>
+
 #ifndef LIBSCHEDULER_H_
 #define LIBSCHEDULER_H_
+
+struct _job_t;
+typedef struct _job_t
+{
+	int id;
+	int priority;
+	int arrival_time;
+	int start_time;
+	int running_time;
+	int remaining_time;
+	int end_time;
+} *job_t;
+
+static job_t new_job(int job_id, int arr_time, int run_time, int priority){
+  job_t new_job = (job_t) malloc(sizeof(job_t));
+
+  new_job->id = job_id;
+  new_job->priority = priority;
+  new_job->arrival_time = arr_time;
+  new_job->start_time = 0;
+  new_job->running_time = run_time;
+  new_job->remaining_time = run_time;
+  new_job->end_time = 0;
+
+  return new_job;
+}
+
+typedef struct core_t
+{
+	bool iAmFree;
+	job_t job;
+} core_t;
 
 /**
   Constants which represent the different scheduling algorithms

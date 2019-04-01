@@ -41,21 +41,21 @@ void priqueue_init(priqueue_t *q, int(*comparer)(const void *, const void *))
  */
 int priqueue_offer(priqueue_t *q, void *ptr)
 {
-	node* node = malloc(sizeof(node));
-  node->process = ptr;
-  node->next = NULL;
+	node n_node = malloc(sizeof(node));
+  n_node->process = ptr;
+  n_node->next = NULL;
   if(q->size == 0)
   {
     q->size = 1;
-    q->head = node;
+    q->head = n_node;
 
     return 0;
   }
-  temp = q->head;
+	temp = q->head;
   previous = NULL;
 
   int location = 0;
-  while(temp != 0 && q->comp(temp->process,ptr) < 0)
+  while(temp != 0 && q->comp(n_node->process,ptr) < 0)
   {
     previous = temp;
     temp = temp->next;
@@ -64,13 +64,13 @@ int priqueue_offer(priqueue_t *q, void *ptr)
   if(location == 0)
   {
     q->size++;
-    node->next = q->head;
-    q->head = node;
+    n_node->next = q->head;
+    q->head = n_node;
     return 0;
   }
 
-  previous->next = node;
-  node->next = temp;
+  previous->next = n_node;
+  n_node->next = temp;
 
   q->size++;
 	return location;
@@ -93,7 +93,7 @@ void *priqueue_peek(priqueue_t *q)
 	}
 	else
 	{
-		return q->head->process;
+		return q->head;
 	}
 }
 
@@ -115,7 +115,7 @@ void *priqueue_poll(priqueue_t *q)
 	else
 	{
 		void* return_process = q->head->process;
-		node* old_head = q->head;
+		node old_head = q->head;
 		q->head = q->head->next;
 		q->size--;
 		free(old_head);
@@ -137,7 +137,7 @@ void *priqueue_poll(priqueue_t *q)
  */
 void *priqueue_at(priqueue_t *q, int index)
 {
-	node* temp = q->head;
+	node temp = q->head;
 	int tracker = 0;
 	if(q->size < index || index < 0)
 	{
@@ -215,7 +215,7 @@ void *priqueue_remove_at(priqueue_t *q, int index)
 		return NULL;
 	}
 	//I do not really think it is a good way to do it, remember how to delete elem in linkedlist
-	node* delEle;
+	node delEle;
 	delEle = q->head;
 	//previous = current;
 	int tracker = 0;
