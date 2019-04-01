@@ -12,11 +12,9 @@ typedef struct node
 {
   void* process;
   struct node *next;
-} node;
+} *node;
 
-node* current;
-node* previous;
-node* temp;
+node* current, previous, temp;
 
 typedef struct _priqueue_t
 {
