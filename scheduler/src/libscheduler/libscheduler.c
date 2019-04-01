@@ -19,7 +19,7 @@ int num_cores;
 float waiting_time;
 float turnaround_time;
 float response_time;
-int num_process;
+int num_jobs;
 int curr_time;
 scheme_t s;
 
@@ -110,7 +110,7 @@ void scheduler_start_up(int cores, scheme_t scheme)
 	waiting_time = 0.0;
 	turnaround_time = 0.0;
 	response_time = 0.0;
-	num_process = 0;
+	num_jobs = 0;
 	curr_time = 0;
 	s = scheme;
   //cores array
@@ -147,24 +147,24 @@ void scheduler_start_up(int cores, scheme_t scheme)
  */
 int scheduler_new_job(int job_number, int time, int running_time, int priority)
 {
-  for(int i = 0; i < num_process; i++){
+  for(int i = 0; i < num_jobs; i++){
     job_t n_job = cores_arr[i];
-
+    //if remaining_time means the response time??
     if (n_job != NULL && n_job->arrival_time != curr_time){
       n_job->remaining_time = n_job->running_time - (curr_time - n_job->start_time);
     }
   }
 
   int core_num = 0;
-  job_t n_job = new_job(job_number, time, running_time, priority);
+  //job_t n_job = new_job(job_number, time, running_time, priority);
 
   // give cores numbers
   while(cores_arr[core_num] != NULL){
     core_num++;
   }
 
-//  if (core_num >= num_process)
-
+//  if (core_num >= num_jobs)
+  return 0;
 }
 
 
@@ -183,6 +183,7 @@ int scheduler_new_job(int job_number, int time, int running_time, int priority)
  */
 int scheduler_job_finished(int core_id, int job_number, int time)
 {
+
 	return -1;
 }
 
@@ -202,7 +203,20 @@ int scheduler_job_finished(int core_id, int job_number, int time)
  */
 int scheduler_quantum_expired(int core_id, int time)
 {
-	return -1;
+  job_t job_in_a_core = cores_arr[core_id];
+  if (job_in_a_core != NULL){
+    priqueue_offer(q, job_in_a_core);
+  }
+  else{
+    if(priqueue_size(q) == 0)
+      return -1;
+  }
+  // if running time means the process time for the job.
+  cores_arr[core_id] = priqueue_poll(q);
+  if(cores_arr[core_id]->running_time == -1){
+    cores_arr[core_id]-> running_time = time - cores_arr[core_id]->arrival_time;
+  }
+	return cores_arr[core_id]->id;
 }
 
 
@@ -215,11 +229,12 @@ int scheduler_quantum_expired(int core_id, int time)
  */
 float scheduler_average_waiting_time()
 {
-	if(num_process > 0)
+	if(num_jobs > 0)
 	{
-		return waiting_time/num_process;
+		return waiting_time/num_jobs;
 	}
-	return 0.0;
+  else
+	  return 0.0;
 }
 
 
@@ -232,11 +247,12 @@ float scheduler_average_waiting_time()
  */
 float scheduler_average_turnaround_time()
 {
-	if(num_process > 0)
+	if(num_jobs > 0)
 	{
-		return turnaround_time / num_process;
+		return turnaround_time / num_jobs;
 	}
-	return 0.0;
+  else
+	   return 0.0;
 }
 
 
@@ -249,7 +265,10 @@ float scheduler_average_turnaround_time()
  */
 float scheduler_average_response_time()
 {
-	return 0.0;
+  if (num_jobs > 0)
+	  return response_time / num_jobs;
+  else
+    return 0.0;
 }
 
 
@@ -261,7 +280,12 @@ float scheduler_average_response_time()
 */
 void scheduler_clean_up()
 {
-	priqueue_destroy(q);
+  for(int i = 0; i< num_cores; i++){
+    if(cores_arr[i] != NULL){
+      free(cores_arr[i]);
+    }
+  }
+  free(cores_arr);
 }
 
 
@@ -278,5 +302,17 @@ void scheduler_clean_up()
  */
 void scheduler_show_queue()
 {
+  for(int i = 0; i < q->size; i++){
+    if (i < num_jobs){
+      job_t n_job = cores_arr[i];
+
+      if( n_job == NULL){
+        printf("%d(%d) ", ((job_t) priqueue_at(q, i))->id, ((job_t) priqueue_at(q, i))->priority);
+      }
+      else{
+        printf("%d(%d) ", n_job->id, n_job->priority);
+      }
+    }
+  }
 	//Fill in if you want I wont be
 }
