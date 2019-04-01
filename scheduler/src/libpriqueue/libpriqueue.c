@@ -6,7 +6,13 @@
 
 #include "libpriqueue.h"
 
-
+// static node* make_nodes(void* ptr)
+// {
+// 	node* new_node = (node*) malloc(sizeof(node));
+// 	new_node->process = ptr;
+// 	new_node->next = NULL;
+// 	return new_node;
+// }
 /**
   Initializes the priqueue_t data structure.
 
@@ -36,54 +42,38 @@ void priqueue_init(priqueue_t *q, int(*comparer)(const void *, const void *))
 int priqueue_offer(priqueue_t *q, void *ptr)
 {
 	node* node = malloc(sizeof(node));
-	node->next = NULL;
-	node->process = ptr;
-	if(q->size == 0)
-	{
-		q->head = node;
-		q->size++;
-		return 0;
-	}
-	// what special about size 1 que??
-	else if (q->size == 1)
-	{
-		if(q->comp(q->head, node) < 0)
-		{
-			node->next = q->head;
-			q->head = node;
-			q->size++;
-			return 0;
-		}
-		else
-		{
-			q->head->next = node;
-			q->size++;
-			return 1;
-		}
-	}//end queue of size 1 case
-	else
-	{
-		current = q->head;
-		previous = current;
-		int tracker = 0;
-		while(tracker < q->size)
-		{
-			if(q->comp(current, node) < 0)
-			{
-				previous->next = node;
-				node->next = current;
-				q->size++;
-				return tracker;
-			}
-			else
-			{
-				previous = current;
-				current = current->next;
-			}
-		}
-		//need to be checked
-		return tracker;
-	}
+  node->process = ptr;
+  node->next = NULL;
+  if(q->size == 0)
+  {
+    q->size = 1;
+    q->head = node;
+
+    return 0;
+  }
+  temp = q->head;
+  previous = NULL;
+
+  int location = 0;
+  while(temp != 0 && q->comp(temp->process,ptr) < 0)
+  {
+    previous = temp;
+    temp = temp->next;
+    location++;
+  }
+  if(location == 0)
+  {
+    q->size++;
+    node->next = q->head;
+    q->head = node;
+    return 0;
+  }
+
+  previous->next = node;
+  node->next = temp;
+
+  q->size++;
+	return location;
 }
 
 
@@ -103,7 +93,7 @@ void *priqueue_peek(priqueue_t *q)
 	}
 	else
 	{
-		return q->head;
+		return q->head->process;
 	}
 }
 
@@ -124,10 +114,12 @@ void *priqueue_poll(priqueue_t *q)
 	}
 	else
 	{
-		node* returnNode = q->head;
+		void* return_process = q->head->process;
+		node* old_head = q->head;
 		q->head = q->head->next;
 		q->size--;
-		return returnNode;
+		free(old_head);
+		return return_process;
 		// this node might need to be freed, to solve it I would create an accessor
 		// function to get the value and free it.
 	}
@@ -147,7 +139,7 @@ void *priqueue_at(priqueue_t *q, int index)
 {
 	node* temp = q->head;
 	int tracker = 0;
-	if(q->size < index)
+	if(q->size < index || index < 0)
 	{
 		return NULL;
 	}
@@ -178,33 +170,33 @@ void *priqueue_at(priqueue_t *q, int index)
  */
 int priqueue_remove(priqueue_t *q, void *ptr)
 {
+	int num_deleted = 0;
 	if (q->size == 0)
 		return 0;
-	else{
-		current = q->head;
-		previous = current;
-		int tracker = 0;
-		int initialSize = q->size;
-		while(tracker < initialSize)
+	else
+	{
+		while(q->head->process == ptr)
 		{
-			if(current->next == NULL)
+			priqueue_poll(q);
+			num_deleted++;
+		}
+		current = q->head;
+		while(current->next != NULL)
+		{
+			temp = current ->next;
+			if(temp->process == ptr)
 			{
-				return 0;
-			}
-			if(current->process == ptr)
-			{
-				previous = current -> next;
+				current->next = temp -> next;
+				free(temp);
 				q->size--;
-				free(current);
-				current = previous -> next;
+				num_deleted++;
 			}
-			tracker++;
-			previous = current;
-			current = current -> next;
-		}//end while
-		return 0;
-	}
-}//end funtion
+			current = current->next;
+		}
+	}//end while
+		return num_deleted;
+}
+
 
 
 /**
@@ -218,6 +210,10 @@ int priqueue_remove(priqueue_t *q, void *ptr)
  */
 void *priqueue_remove_at(priqueue_t *q, int index)
 {
+	if(index < 0 || index > q->size)
+	{
+		return NULL;
+	}
 	//I do not really think it is a good way to do it, remember how to delete elem in linkedlist
 	node* delEle;
 	delEle = q->head;
@@ -229,11 +225,11 @@ void *priqueue_remove_at(priqueue_t *q, int index)
 		delEle = delEle->next;
 		tracker++;
 	}
+	void* process_deleted = delEle->process;
 	current = delEle -> next;
 	free(delEle);
 	q->size--;
-	// this shold return void* type.
-	return 0;
+	return process_deleted;
 }
 
 
