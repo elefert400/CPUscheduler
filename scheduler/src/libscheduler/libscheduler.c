@@ -8,44 +8,29 @@
 #include "libscheduler.h"
 #include "../libpriqueue/libpriqueue.h"
 
-
 /**
   Stores information making up a job to be scheduled including any statistics.
 
   You may need to define some global variables or a struct to store your job queue elements.
 */
-priqueue_t q;
+
+priqueue_t* q;
 int num_cores;
 float waiting_time;
 float turnaround_time;
 float response_time;
 int num_process;
-int current_time;
+int curr_time;
 scheme_t s;
 
 //array of cores
-job_t cores_arr;
-typedef struct _job_t
-{
-	int id;
-	int priority;
-	int arrival_time;
-	int start_time;
-	int running_time;
-	int remaining_time;
-	int end_time;
-} job_t;
+job_t* cores_arr;
 
-struct core_t
-{
-	bool free;
-	job_t *job;
-}core_t;
 
-int comparer(const void* a, const void b)
+int comparer(const void* a, const void* b)
 {
-	job_t job_a = (job_t*) a;
-	job_t job_b = (job_t*) b;
+	job_t job_a = (job_t) a;
+	job_t job_b = (job_t) b;
 
 	//compare differences
 	int priority_difference = job_a->priority - job_b ->priority;
@@ -65,7 +50,8 @@ int comparer(const void* a, const void b)
 		{
 			return arrival_difference;
 		}
-		return priority_difference;
+    else
+		  return priority_difference;
 	}
 	//pri compare
 	if(s == PRI)
@@ -74,16 +60,18 @@ int comparer(const void* a, const void b)
 		{
 			return arrival_difference;
 		}
-		return priority_difference;
+    else
+		  return priority_difference;
 	}
 	//psjf compare
 	if(s == PSJF)
 	{
-		if(remaining_time == 0)
+		if(remaining_difference == 0)
 		{
 			return arrival_difference;
 		}
-		return remaining_difference;
+    else
+		  return remaining_difference;
 	}
 	//RR, nothing to compare
 	if(s == RR)
@@ -97,10 +85,12 @@ int comparer(const void* a, const void b)
 		{
 			return arrival_difference;
 		}
-		return run_differnce;
+    else
+		  return run_differnce;
 	}
 	//default
-	return 0;
+  else
+	 return 0;
 }
 /**
   Initalizes the scheduler.
@@ -117,18 +107,19 @@ int comparer(const void* a, const void b)
 void scheduler_start_up(int cores, scheme_t scheme)
 {
 	num_cores = cores;
-	cores_arr = malloc(sizeof(core_t) * num_cores);
 	waiting_time = 0.0;
 	turnaround_time = 0.0;
 	response_time = 0.0;
 	num_process = 0;
-	current_time = 0;
+	curr_time = 0;
 	s = scheme;
-
+  //cores array
+  cores_arr = (job_t*)malloc(sizeof(job_t) * num_cores);
 	for(int i = 0; i < cores; i++)
 	{
 		cores_arr[i] = NULL;
 	}
+  //jobs array
 	q = (priqueue_t*)malloc(sizeof(priqueue_t));
 	priqueue_init(q, &comparer);
 }
@@ -156,7 +147,24 @@ void scheduler_start_up(int cores, scheme_t scheme)
  */
 int scheduler_new_job(int job_number, int time, int running_time, int priority)
 {
-	return -1;
+  for(int i = 0; i < num_process; i++){
+    job_t n_job = cores_arr[i];
+
+    if (n_job != NULL && n_job->arrival_time != curr_time){
+      n_job->remaining_time = n_job->running_time - (curr_time - n_job->start_time);
+    }
+  }
+
+  int core_num = 0;
+  job_t n_job = new_job(job_number, time, running_time, priority);
+
+  // give cores numbers
+  while(cores_arr[core_num] != NULL){
+    core_num++;
+  }
+
+//  if (core_num >= num_process)
+
 }
 
 
@@ -207,9 +215,9 @@ int scheduler_quantum_expired(int core_id, int time)
  */
 float scheduler_average_waiting_time()
 {
-	if(num_jobs > 0)
+	if(num_process > 0)
 	{
-		return waiting_time/num_jobs;
+		return waiting_time/num_process;
 	}
 	return 0.0;
 }
@@ -224,9 +232,9 @@ float scheduler_average_waiting_time()
  */
 float scheduler_average_turnaround_time()
 {
-	if(num_jobs > 0)
+	if(num_process > 0)
 	{
-		return turnaround_time / num_jobs;
+		return turnaround_time / num_process;
 	}
 	return 0.0;
 }
