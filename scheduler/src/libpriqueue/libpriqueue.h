@@ -10,8 +10,8 @@ struct Node;
 */
 typedef struct Node
 {
-  void* process;
   struct Node *next;
+  void* process;
 } *node;
 
 node current, previous, temp;
