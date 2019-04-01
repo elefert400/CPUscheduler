@@ -195,8 +195,8 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 		}
 	}//end while
 		return num_deleted;
-	}
-//}//end funtion
+}
+
 
 
 /**
@@ -229,7 +229,6 @@ void *priqueue_remove_at(priqueue_t *q, int index)
 	current = delEle -> next;
 	free(delEle);
 	q->size--;
-	// this shold return void* type.
 	return process_deleted;
 }
 
