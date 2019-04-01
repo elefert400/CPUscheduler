@@ -93,7 +93,7 @@ void *priqueue_peek(priqueue_t *q)
 	}
 	else
 	{
-		return q->head;
+		return q->head->process;
 	}
 }
 
@@ -112,17 +112,29 @@ void *priqueue_poll(priqueue_t *q)
 	{
 		return NULL;
 	}
-	else
-	{
-		void* return_process = q->head->process;
-		node old_head = q->head;
-		q->head = q->head->next;
+	/*temp = q->head;
+	void* return_process = NULL;
+
+	if (temp != NULL){
+		q->head = temp->next;
+	}
+	else {
+		q->head = NULL;
+	}
+	return_process = temp->process;
+	free(temp);
+	q->size--;
+	return return_process;*/
+	else{
+		temp = q->head;
+		void* return_process = temp->process;
+		q->head = temp->next;
 		q->size--;
-		free(old_head);
+		free(temp);
 		return return_process;
+	}
 		// this node might need to be freed, to solve it I would create an accessor
 		// function to get the value and free it.
-	}
 }
 
 
@@ -137,23 +149,24 @@ void *priqueue_poll(priqueue_t *q)
  */
 void *priqueue_at(priqueue_t *q, int index)
 {
-	node temp = q->head;
-	int tracker = 0;
-	if(q->size < index || index < 0)
+	if(index >= q->size)
 	{
 		return NULL;
 	}
 	else
 	{
+		temp = q->head;
+		int tracker = 0;
 		while(tracker < index)
 		{
 			temp = temp->next;
 			tracker++;
 		}
-		if (index == tracker)
+		/*if (index == tracker)
 			return temp;
 		else
-			return NULL;
+			return NULL;*/
+		return temp->process;
 	}
 }
 
@@ -181,7 +194,7 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 			num_deleted++;
 		}
 		current = q->head;
-		while(current->next != NULL)
+		while(current != NULL)
 		{
 			temp = current ->next;
 			if(temp->process == ptr)
@@ -215,8 +228,7 @@ void *priqueue_remove_at(priqueue_t *q, int index)
 		return NULL;
 	}
 	//I do not really think it is a good way to do it, remember how to delete elem in linkedlist
-	node delEle;
-	delEle = q->head;
+	node delEle = q->head;
 	//previous = current;
 	int tracker = 0;
 	while(tracker < index)
