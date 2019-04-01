@@ -46,16 +46,16 @@ int priqueue_offer(priqueue_t *q, void *ptr)
   n_node->next = NULL;
   if(q->size == 0)
   {
-    q->size = 1;
     q->head = n_node;
-
-    return 0;
+		q->size++;
+		return 0;
   }
+
 	temp = q->head;
   previous = NULL;
 
   int location = 0;
-  while(temp != 0 && q->comp(n_node->process,ptr) < 0)
+  while(temp != NULL && q->comp(temp->process,ptr) < 0)
   {
     previous = temp;
     temp = temp->next;
@@ -112,7 +112,7 @@ void *priqueue_poll(priqueue_t *q)
 	{
 		return NULL;
 	}
-	/*temp = q->head;
+	temp = q->head;
 	void* return_process = NULL;
 
 	if (temp != NULL){
@@ -124,15 +124,15 @@ void *priqueue_poll(priqueue_t *q)
 	return_process = temp->process;
 	free(temp);
 	q->size--;
-	return return_process;*/
-	else{
+	return return_process;
+	/*else{
 		temp = q->head;
 		void* return_process = temp->process;
 		q->head = temp->next;
 		q->size--;
 		free(temp);
 		return return_process;
-	}
+	}*/
 		// this node might need to be freed, to solve it I would create an accessor
 		// function to get the value and free it.
 }
@@ -156,8 +156,8 @@ void *priqueue_at(priqueue_t *q, int index)
 	else
 	{
 		temp = q->head;
-		int tracker = 0;
-		while(tracker < index)
+		int tracker = 1;
+		while(tracker <= index)
 		{
 			temp = temp->next;
 			tracker++;
@@ -186,7 +186,33 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 	int num_deleted = 0;
 	if (q->size == 0)
 		return 0;
-	else
+	temp = q->head;
+	if(q->comp(ptr, temp->process) == 0){
+		q->head = temp->next;
+		free(temp);
+		q->size--;
+		return priqueue_remove(q, ptr) + 1;
+	}
+
+	current = temp->next;
+	previous = temp;
+
+	while (current != NULL) {
+		if(q->comp(current->process, ptr) == 0){
+			num_deleted++;
+			temp = current->next;
+			previous->next = temp;
+			free(current);
+			current = temp;
+			q->size--;
+			}
+		else{
+			previous = current;
+			current = current->next;
+		}
+	}
+	return num_deleted;
+				/*else
 	{
 		while(q->head->process == ptr)
 		{
@@ -205,9 +231,9 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 				num_deleted++;
 			}
 			current = current->next;
-		}
-	}//end while
-		return num_deleted;
+		}*/
+//	}//end while
+		//return num_deleted;
 }
 
 

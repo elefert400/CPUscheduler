@@ -18,7 +18,7 @@ priqueue_t* q;
 int num_cores;
 float waiting_time;
 float turnaround_time;
-float response_time;
+float response_time; //
 int num_jobs;
 int curr_time;
 scheme_t s;

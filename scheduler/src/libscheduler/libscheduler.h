@@ -12,10 +12,10 @@ typedef struct _job_t
 	int id;
 	int priority;
 	int arrival_time;
-	int start_time;
-	int running_time;
-	int remaining_time;
-	int end_time;
+	int start_time; //time starts for one of them(start -arr)
+	int running_time; // how much time run already curr - start
+	int remaining_time; // how much time left
+	int end_time; // the time it finished
 } *job_t;
 
 static job_t new_job(int job_id, int arr_time, int run_time, int priority){
